@@ -1,5 +1,6 @@
 import http.server
 import socketserver
+import urllib
 from urllib.parse import urlparse
 from urllib.parse import parse_qs
 import glob
@@ -28,12 +29,26 @@ class MyHttpRequestHandler(http.server.SimpleHTTPRequestHandler):
 
         # get and display links
         links = getLinks("https://www.google.com/search?q=" + searchTerm)
+        # scan and append all links to dynamic webpage
         for i in range(len(links)):
 
             # test that it is a link that we want
             if "/url?q=" in links[i]:
                 # remove substring and append to page
                 linkToAppend = links[i].replace('/url?q=','')
+
+                # if using google or similar engines you may need to modify this to create a usable URL
+                if "&sa=" in linkToAppend:
+                    # find index of "&sa=" url paramiter which breaks the links
+                    scanningIndex = -1
+                    scanningIndex = linkToAppend.find("&sa=")
+
+                    # extract sub-string from to append link
+                    linkToAppend = linkToAppend[:-(len(linkToAppend)-scanningIndex):]
+                
+                # decode URI to URL
+                linkToAppend = urllib.parse.unquote(urllib.parse.unquote(linkToAppend))
+                    
                 html += f"""<a class='websiteLink' href='{linkToAppend}'>{linkToAppend}</a><br>"""
             
             # scanning sequence
